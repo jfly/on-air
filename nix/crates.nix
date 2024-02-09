@@ -14,12 +14,9 @@
     nativeBuildInputs = with pkgs; [
       rustPlatform.bindgenHook
     ];
-
-    preBuild = ''
-      # This is a nasty workaround for https://github.com/ipetkov/crane/discussions/518
-      # to avoid unnecessarily recompiling bindgen.
-      export BINDGEN_EXTRA_CLANG_ARGS=$(echo $BINDGEN_EXTRA_CLANG_ARGS | ${getExe pkgs.gnused} 's/-frandom-seed=[^ ]\+/-frandom-seed=deadbeef/')
-    '';
+    # Avoid unnecessary rebuilds of the bindgen crate. See
+    # https://crane.dev/faq/rebuilds-bindgen.html
+    NIX_OUTPATH_USED_AS_RANDOM_SEED = "deadbeef";
   };
   cargoArtifacts = craneLib.buildDepsOnly commonArgs;
   clippyCheck = craneLib.cargoClippy (commonArgs
