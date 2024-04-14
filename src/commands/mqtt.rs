@@ -1,6 +1,8 @@
 use rumqttc::{Client, MqttOptions, QoS};
 use serde::Serialize;
 use std::{
+    fs,
+    path::PathBuf,
     thread::{self, sleep},
     time::Duration,
 };
@@ -19,7 +21,10 @@ pub struct Mqtt {
     username: String,
 
     #[arg(long, short, env("ON_AIR_MQTT_PASSWORD"))]
-    password: String,
+    password: Option<String>,
+
+    #[arg(long, env("ON_AIR_MQTT_PASSWORD_FILE"), conflicts_with = "password")]
+    password_file: Option<PathBuf>,
 
     #[arg(long, short)]
     device_name: String,
@@ -62,6 +67,7 @@ impl Mqtt {
             broker,
             username,
             password,
+            password_file,
             device_name,
             discovery_prefix,
             poll_seconds,
@@ -73,6 +79,9 @@ impl Mqtt {
         if !broker.query_pairs().any(|(k, _v)| k == "client_id") {
             broker.query_pairs_mut().append_pair("client_id", "on-air");
         }
+
+        let password =
+            password.unwrap_or_else(|| fs::read_to_string(password_file.unwrap()).unwrap());
 
         let mut mqttoptions = MqttOptions::parse_url(broker).unwrap();
         mqttoptions.set_credentials(username, password);
