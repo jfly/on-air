@@ -1,18 +1,27 @@
+mod commands;
 mod webcam;
 
-use webcam::Webcam;
+use clap::{Parser, Subcommand};
+
+/// Detect if an attached webcam is in use and optionally publish its status to a
+/// MQTT broker in a way Home Assistant understands.
+#[derive(Parser)]
+struct Cli {
+    #[command(subcommand)]
+    command: Commands,
+}
+
+#[derive(Subcommand)]
+enum Commands {
+    Get(commands::get::Get),
+    Mqtt(commands::mqtt::Mqtt),
+}
 
 fn main() {
-    for webcam in Webcam::all() {
-        let is_streaming = webcam.is_streaming();
-        let Webcam { path, name, .. } = webcam;
-        let path = path.to_string_lossy();
-        let name = name.unwrap_or("???".to_string());
+    let args = Cli::parse();
 
-        if is_streaming {
-            println!("{path} ({name}) is streaming");
-        } else {
-            println!("{path} ({name}) is not streaming");
-        }
+    match args.command {
+        Commands::Get(c) => c.execute(),
+        Commands::Mqtt(c) => c.execute(),
     }
 }
