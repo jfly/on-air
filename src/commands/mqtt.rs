@@ -1,8 +1,9 @@
 use rumqttc::{Client, MqttOptions, QoS};
 use serde::Serialize;
 use std::{
-    fs,
+    fs, panic,
     path::PathBuf,
+    process,
     thread::{self, sleep},
     time::Duration,
 };
@@ -77,7 +78,9 @@ impl Mqtt {
         let mut broker = url::Url::parse(&broker).unwrap();
         // If the given broker url doesn't already have a client_id specified, add one.
         if !broker.query_pairs().any(|(k, _v)| k == "client_id") {
-            broker.query_pairs_mut().append_pair("client_id", "on-air");
+            broker
+                .query_pairs_mut()
+                .append_pair("client_id", &format!("on-air-{device_name}"));
         }
 
         let password =
@@ -106,6 +109,7 @@ impl Mqtt {
             expire_after: Some(2 * poll_seconds),
         };
         let discovery_payload_json = serde_json::to_string_pretty(&discovery_payload).unwrap();
+        println!("Sending discovery message to {configuration_topic}");
         client
             .publish(
                 configuration_topic,
@@ -114,6 +118,11 @@ impl Mqtt {
                 discovery_payload_json,
             )
             .unwrap();
+
+        // Force the whole process to exit if any threads panic.
+        // Without this, the a sub-thread panics, it just stops running but the rest of the process
+        // keeps running. Not very useful for us :p
+        exit_on_panic();
 
         thread::spawn(move || loop {
             let something_streaming = Webcam::all()
@@ -140,4 +149,15 @@ impl Mqtt {
             }
         }
     }
+}
+
+/// Copied from https://stackoverflow.com/a/36031130.
+/// Useful to ensure a process exits if a thread panics.
+fn exit_on_panic() {
+    let orig_hook = panic::take_hook();
+    panic::set_hook(Box::new(move |panic_info| {
+        // invoke the default handler and exit the process
+        orig_hook(panic_info);
+        process::exit(1);
+    }));
 }
