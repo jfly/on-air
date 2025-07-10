@@ -114,7 +114,11 @@ impl Mqtt {
             .publish(
                 configuration_topic,
                 QoS::AtLeastOnce,
-                true, // retain!
+                // Retain this message. Note: a better option than retaining a discovery message is to implement support
+                // for Home Assistant's "Birth and Last Will and Testament" messages. See
+                // <https://www.home-assistant.io/integrations/mqtt/#birth-and-last-will-messages>
+                // for details.
+                true,
                 discovery_payload_json,
             )
             .unwrap();
