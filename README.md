@@ -1,6 +1,6 @@
 # on air
 
-Detect if an attached webcam is in use and optionally publish its status to a
+Detect if an attached webcam is in use and optionally publish its status to an
 MQTT broker in a way Home Assistant understands.
 
 ## Usage
@@ -17,11 +17,11 @@ MQTT broker in a way Home Assistant understands.
 
 ### Publish the current status to MQTT broker
 
-This connects to a MQTT broker and publishes the status to a topic.
+This connects to an MQTT broker and publishes the status to a topic.
 
 First, it publishes a retained "config" discovery message as described by Home
 Assistant here:
-https://www.home-assistant.io/integrations/mqtt/#discovery-topic. The component
+<https://www.home-assistant.io/integrations/mqtt/#discovery-topic>. The component
 type is `binary_sensor`.
 
 Next, it runs forever, polling the state of the attached webcams and publishing
@@ -45,7 +45,7 @@ You can see this in action here: <https://www.youtube.com/watch?v=9zsV41U3B2E>. 
   and "garage off-air") that turn the "on air led" on/off when my laptop webcam
   appears/disappears.
 - I built the on air display, which was a fun mix of woodworking and
-  electronics. It has a ESP8266 running [ESPHome](https://esphome.io/). It's
+  electronics. It has an ESP8266 running [ESPHome](https://esphome.io/). It's
   directly connected to mains electricity for power.
   Feel free to reach out if you'd like more details. It may motivate me to
   document the full build.
