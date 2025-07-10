@@ -4,10 +4,7 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-parts.url = "github:hercules-ci/flake-parts";
-    crane = {
-      url = "github:ipetkov/crane";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    crane.url = "github:ipetkov/crane";
     treefmt-nix = {
       url = "github:numtide/treefmt-nix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -16,7 +13,6 @@
 
   outputs = inputs @ {
     self,
-    nixpkgs,
     flake-parts,
     crane,
     treefmt-nix,
@@ -24,20 +20,8 @@
   }:
     flake-parts.lib.mkFlake {inherit inputs;} {
       systems = ["x86_64-linux"];
-      perSystem = {
-        config,
-        self',
-        inputs',
-        pkgs,
-        system,
-        ...
-      }: let
-        inherit (nixpkgs) lib;
-        inherit
-          (lib)
-          attrValues
-          ;
-        craneLib = crane.lib.${system};
+      perSystem = {pkgs, ...}: let
+        craneLib = crane.mkLib pkgs;
         treefmt = treefmt-nix.lib.evalModule pkgs ./nix/treefmt.nix;
 
         flattenTree = import ./nix/flattenTree.nix;
