@@ -3,7 +3,7 @@ mod webcam;
 
 use clap::{Parser, Subcommand};
 
-/// Detect if an attached webcam is in use and optionally publish its status to a
+/// Detect if an attached webcam is in use and optionally publish its status to an
 /// MQTT broker in a way Home Assistant understands.
 #[derive(Parser)]
 struct Cli {

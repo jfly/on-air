@@ -12,7 +12,7 @@ use crate::webcam::Webcam;
 use clap::Parser;
 
 #[derive(Parser)]
-/// Connect to a MQTT broker and publish the status to a topic.
+/// Connect to an MQTT broker and publish the status to a topic.
 pub struct Mqtt {
     /// The MQTT broker to connect to. Example: "mqtts://mqtt.snow.jflei.com".
     #[arg(long, short, env("ON_AIR_MQTT_BROKER"))]
@@ -124,16 +124,18 @@ impl Mqtt {
         // keeps running. Not very useful for us :p
         exit_on_panic();
 
-        thread::spawn(move || loop {
-            let something_streaming = Webcam::all()
-                .into_iter()
-                .any(|webcam| webcam.is_streaming());
-            let payload = if something_streaming { "ON" } else { "OFF" };
-            client
-                .publish(state_topic.clone(), QoS::AtLeastOnce, false, payload)
-                .unwrap();
+        thread::spawn(move || {
+            loop {
+                let something_streaming = Webcam::all()
+                    .into_iter()
+                    .any(|webcam| webcam.is_streaming());
+                let payload = if something_streaming { "ON" } else { "OFF" };
+                client
+                    .publish(state_topic.clone(), QoS::AtLeastOnce, false, payload)
+                    .unwrap();
 
-            sleep(Duration::from_secs(poll_seconds));
+                sleep(Duration::from_secs(poll_seconds));
+            }
         });
 
         for notification in connection.iter() {
@@ -143,7 +145,7 @@ impl Mqtt {
                     eprintln!("Error talking to MQTT broker: {:?}", notification);
 
                     // If something's going wrong (most likely a network connectivity issue), sleep to
-                    // slow things down so we're not pegging the cpu.
+                    // slow things down so we're not pegging the CPU.
                     sleep(Duration::from_secs(15));
                 }
             }
@@ -156,7 +158,7 @@ impl Mqtt {
 fn exit_on_panic() {
     let orig_hook = panic::take_hook();
     panic::set_hook(Box::new(move |panic_info| {
-        // invoke the default handler and exit the process
+        // Invoke the default handler and exit the process.
         orig_hook(panic_info);
         process::exit(1);
     }));
